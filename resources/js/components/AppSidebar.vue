@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid, Users } from 'lucide-vue-next';
+import { BookOpen, ChevronDown, FolderGit2, LayoutGrid, Users, Wrench } from 'lucide-vue-next';
+import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -9,11 +10,18 @@ import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
+    SidebarGroup,
+    SidebarGroupLabel,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarMenuSub,
+    SidebarMenuSubButton,
+    SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
@@ -30,6 +38,15 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
+const maintenanceItems: NavItem[] = [
+    { title: 'Empleados', href: '/mantenimientos/empleados' },
+    { title: 'Feriados', href: '/mantenimientos/feriados' },
+    { title: 'Horarios', href: '/mantenimientos/horarios' },
+    { title: 'Turnos', href: '/mantenimientos/turnos' },
+    { title: 'Periodos', href: '/mantenimientos/periodos' },
+    { title: 'Tipos de Boletas', href: '/mantenimientos/tipos-boletas' },
+];
+
 const footerNavItems: NavItem[] = [
     {
         title: 'Repository',
@@ -42,6 +59,12 @@ const footerNavItems: NavItem[] = [
         icon: BookOpen,
     },
 ];
+
+const { isCurrentOrParentUrl, isCurrentUrl } = useCurrentUrl();
+
+const isMantenimientosOpen = computed(() =>
+    maintenanceItems.some((item) => isCurrentOrParentUrl(item.href)),
+);
 </script>
 
 <template>
@@ -60,6 +83,40 @@ const footerNavItems: NavItem[] = [
 
         <SidebarContent>
             <NavMain :items="mainNavItems" />
+
+            <SidebarGroup class="px-2 py-0">
+                <SidebarGroupLabel>Módulos</SidebarGroupLabel>
+                <SidebarMenu>
+                    <Collapsible :default-open="isMantenimientosOpen" class="group/collapsible">
+                        <SidebarMenuItem>
+                            <CollapsibleTrigger as-child>
+                                <SidebarMenuButton :is-active="isMantenimientosOpen">
+                                    <Wrench />
+                                    <span>Mantenimientos</span>
+                                    <ChevronDown
+                                        class="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180"
+                                    />
+                                </SidebarMenuButton>
+                            </CollapsibleTrigger>
+
+                            <CollapsibleContent>
+                                <SidebarMenuSub>
+                                    <SidebarMenuSubItem
+                                        v-for="item in maintenanceItems"
+                                        :key="item.title"
+                                    >
+                                        <SidebarMenuSubButton as-child :is-active="isCurrentUrl(item.href)">
+                                            <Link :href="item.href">
+                                                <span>{{ item.title }}</span>
+                                            </Link>
+                                        </SidebarMenuSubButton>
+                                    </SidebarMenuSubItem>
+                                </SidebarMenuSub>
+                            </CollapsibleContent>
+                        </SidebarMenuItem>
+                    </Collapsible>
+                </SidebarMenu>
+            </SidebarGroup>
         </SidebarContent>
 
         <SidebarFooter>
