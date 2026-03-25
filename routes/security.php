@@ -15,6 +15,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('mantenimientos')->name('mantenimientos.')->group(function () {
         Route::get('/', fn () => redirect()->route('mantenimientos.empleados.index'));
 
+        Route::get('empleados/consultar-reniec', [EmpleadoController::class, 'consultarReniec'])->name('empleados.consultar-reniec');
         Route::get('empleados', [EmpleadoController::class, 'index'])->name('empleados.index');
         Route::post('empleados', [EmpleadoController::class, 'store'])->name('empleados.store');
         Route::put('empleados/{empleado}', [EmpleadoController::class, 'update'])->name('empleados.update');

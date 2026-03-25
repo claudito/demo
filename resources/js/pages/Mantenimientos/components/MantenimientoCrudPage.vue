@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { router, useForm } from '@inertiajs/vue3';
+import { Search } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import {
     Dialog,
@@ -11,6 +12,12 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 type FieldOption = {
     label: string;
@@ -23,6 +30,7 @@ type FieldConfig = {
     type?: 'text' | 'number' | 'date' | 'time' | 'textarea' | 'checkbox';
     placeholder?: string;
     table?: boolean;
+    reniecButton?: boolean;
     options?: FieldOption[];
 };
 
@@ -38,8 +46,17 @@ const props = defineProps<{
 const isDialogOpen = ref(false);
 const editingId = ref<number | null>(null);
 const mode = ref<'create' | 'edit'>('create');
+const reniecLoadingField = ref<string | null>(null);
 
-const form = useForm<Record<string, any>>({});
+function buildFormData(record?: Record<string, any>) {
+    return props.fields.reduce<Record<string, any>>((acc, field) => {
+        const value = record?.[field.name];
+        acc[field.name] = value ?? defaultValueForField(field);
+        return acc;
+    }, {});
+}
+
+const form = useForm<Record<string, any>>(buildFormData());
 
 const tableFields = computed(() => props.fields.filter((field) => field.table !== false));
 
@@ -50,10 +67,9 @@ function defaultValueForField(field: FieldConfig) {
 }
 
 function initializeForm(record?: Record<string, any>) {
-    props.fields.forEach((field) => {
-        const value = record?.[field.name];
-        form[field.name] = value ?? defaultValueForField(field);
-    });
+    const values = buildFormData(record);
+    form.defaults(values);
+    form.reset();
 }
 
 function openCreateDialog() {
@@ -77,6 +93,17 @@ function closeDialog() {
 }
 
 function submit() {
+    form.transform((data) => {
+        const payload = { ...data };
+
+        props.fields.forEach((field) => {
+            if (field.type === 'checkbox') {
+                payload[field.name] = Boolean(payload[field.name]);
+            }
+        });
+
+        return payload;
+    });
     if (mode.value === 'create') {
         form.post(props.basePath, {
             preserveScroll: true,
@@ -92,7 +119,7 @@ function submit() {
 }
 
 function removeRecord(id: number) {
-    if (!window.confirm(`¿Deseas eliminar este registro de ${props.entityLabel}?`)) {
+    if (!window.confirm(`Deseas eliminar este registro de ${props.entityLabel}?`)) {
         return;
     }
 
@@ -105,10 +132,60 @@ function formatCell(record: Record<string, any>, field: FieldConfig) {
     const value = record[field.name];
 
     if (field.type === 'checkbox') {
-        return value ? 'Sí' : 'No';
+        return value ? 'Si' : 'No';
     }
 
     return value ?? '-';
+}
+
+async function consultReniec(fieldName: string) {
+    const numeroDocumento = String(form[fieldName] ?? '').trim();
+
+    if (numeroDocumento.length === 0) {
+        form.setError(fieldName, 'Ingrese un numero de documento.');
+        return;
+    }
+
+    if (numeroDocumento.length !== 8) {
+        form.setError(fieldName, 'El DNI debe tener 8 digitos.');
+        return;
+    }
+
+    form.clearErrors(fieldName);
+    reniecLoadingField.value = fieldName;
+
+    try {
+        const response = await fetch(
+            `${props.basePath}/consultar-reniec?numero_documento=${encodeURIComponent(numeroDocumento)}`,
+            {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            },
+        );
+
+        const payload = await response.json();
+
+        if (!response.ok) {
+            form.setError(fieldName, payload?.error ?? 'No se pudo consultar RENIEC.');
+            return;
+        }
+
+        if (payload?.message !== 'success') {
+            form.setError(fieldName, payload?.error ?? 'Respuesta invalida de RENIEC.');
+            return;
+        }
+
+        form.nombres = payload.nombres ?? '';
+        form.apellidos = payload.apellidos ?? '';
+        form.clearErrors('nombres', 'apellidos');
+    } catch {
+        form.setError(fieldName, 'Error de conexion al consultar RENIEC.');
+    } finally {
+        reniecLoadingField.value = null;
+    }
 }
 </script>
 
@@ -199,12 +276,31 @@ function formatCell(record: Record<string, any>, field: FieldConfig) {
                             >
                         </div>
 
-                        <Input
-                            v-else
-                            v-model="form[field.name]"
-                            :type="field.type ?? 'text'"
-                            :placeholder="field.placeholder"
-                        />
+                        <div v-else class="flex items-center gap-2">
+                            <Input
+                                v-model="form[field.name]"
+                                :type="field.type ?? 'text'"
+                                :placeholder="field.placeholder"
+                            />
+                            <TooltipProvider v-if="field.reniecButton" :delay-duration="0">
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <Button
+                                            type="button"
+                                            variant="default"
+                                            size="icon"
+                                            :disabled="reniecLoadingField === field.name"
+                                            @click="consultReniec(field.name)"
+                                        >
+                                            <Search class="h-4 w-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>consultar reniec</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </div>
 
                         <p v-if="form.errors[field.name]" class="text-xs text-destructive">
                             {{ form.errors[field.name] }}

@@ -8,6 +8,7 @@ class Empleado extends Model
 {
     protected $fillable = [
         'codigo',
+        'numero_documento',
         'nombres',
         'apellidos',
         'cargo',

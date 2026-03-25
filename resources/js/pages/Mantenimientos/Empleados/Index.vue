@@ -13,11 +13,16 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const fields = [
-    { name: 'codigo', label: 'Código', placeholder: 'EMP001' },
+    {
+        name: 'numero_documento',
+        label: 'Numero de documento',
+        placeholder: 'Ej: 45680211',
+        reniecButton: true,
+    },
     { name: 'nombres', label: 'Nombres' },
     { name: 'apellidos', label: 'Apellidos' },
     { name: 'cargo', label: 'Cargo' },
-    { name: 'condicion_laboral', label: 'Condición laboral' },
+    { name: 'condicion_laboral', label: 'Condicion laboral' },
     { name: 'estado', label: 'Activo', type: 'checkbox' as const },
 ];
 </script>
@@ -28,7 +33,7 @@ const fields = [
     <AppLayout :breadcrumbs="breadcrumbs">
         <MantenimientoCrudPage
             title="Mantenimiento de Empleados"
-            description="Gestiona empleados para el módulo de asistencias."
+            description="Gestiona empleados para el modulo de asistencias."
             entity-label="empleado"
             :records="records"
             :fields="fields"
