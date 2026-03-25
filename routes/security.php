@@ -6,6 +6,7 @@ use App\Http\Controllers\Mantenimientos\HorarioController;
 use App\Http\Controllers\Mantenimientos\PeriodoController;
 use App\Http\Controllers\Mantenimientos\TipoBoletaController;
 use App\Http\Controllers\Mantenimientos\TurnoController;
+use App\Http\Controllers\Mantenimientos\UbigeoController;
 use App\Http\Controllers\Security\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -45,5 +46,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('tipos-boletas', [TipoBoletaController::class, 'store'])->name('tipos-boletas.store');
         Route::put('tipos-boletas/{tipoBoleta}', [TipoBoletaController::class, 'update'])->name('tipos-boletas.update');
         Route::delete('tipos-boletas/{tipoBoleta}', [TipoBoletaController::class, 'destroy'])->name('tipos-boletas.destroy');
+        Route::get('ubigeos', [UbigeoController::class, 'index'])->name('ubigeos.index');
+        Route::post('ubigeos', [UbigeoController::class, 'store'])->name('ubigeos.store');
+        Route::put('ubigeos/{ubigeo}', [UbigeoController::class, 'update'])->name('ubigeos.update');
+        Route::delete('ubigeos/{ubigeo}', [UbigeoController::class, 'destroy'])->name('ubigeos.destroy');
     });
 });

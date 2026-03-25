@@ -45,6 +45,7 @@ const maintenanceItems: NavItem[] = [
     { title: 'Turnos', href: '/mantenimientos/turnos' },
     { title: 'Periodos', href: '/mantenimientos/periodos' },
     { title: 'Tipos de Boletas', href: '/mantenimientos/tipos-boletas' },
+    { title: 'Ubigeos', href: '/mantenimientos/ubigeos' },
 ];
 
 const footerNavItems: NavItem[] = [
@@ -85,7 +86,7 @@ const isMantenimientosOpen = computed(() =>
             <NavMain :items="mainNavItems" />
 
             <SidebarGroup class="px-2 py-0">
-                <SidebarGroupLabel>Módulos</SidebarGroupLabel>
+                <SidebarGroupLabel>Modulos</SidebarGroupLabel>
                 <SidebarMenu>
                     <Collapsible :default-open="isMantenimientosOpen" class="group/collapsible">
                         <SidebarMenuItem>

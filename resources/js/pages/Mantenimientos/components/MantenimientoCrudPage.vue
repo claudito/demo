@@ -44,7 +44,7 @@ const props = defineProps<{
 }>();
 
 const isDialogOpen = ref(false);
-const editingId = ref<number | null>(null);
+const editingId = ref<string | number | null>(null);
 const mode = ref<'create' | 'edit'>('create');
 const reniecLoadingField = ref<string | null>(null);
 
@@ -82,7 +82,7 @@ function openCreateDialog() {
 
 function openEditDialog(record: Record<string, any>) {
     mode.value = 'edit';
-    editingId.value = Number(record.id);
+    editingId.value = record.id;
     initializeForm(record);
     form.clearErrors();
     isDialogOpen.value = true;
@@ -118,7 +118,7 @@ function submit() {
     });
 }
 
-function removeRecord(id: number) {
+function removeRecord(id: string | number) {
     if (!window.confirm(`Deseas eliminar este registro de ${props.entityLabel}?`)) {
         return;
     }
